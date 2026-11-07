@@ -1,6 +1,6 @@
 /* Guarda só a casca do app (HTML, CSS, JS, ícones) para abrir rápido.
    Nunca guarda respostas do GitHub: os dados são sempre buscados na hora. */
-const VERSAO = "painel-v1";
+const VERSAO = "painel-v2";
 const CASCA = ["./", "index.html", "app.css", "app.js", "manifest.webmanifest", "icone.svg", "icone-192.png", "icone-512.png"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(VERSAO).then((c) => c.addAll(CASCA))); self.skipWaiting(); });
 self.addEventListener("activate", (e) => {

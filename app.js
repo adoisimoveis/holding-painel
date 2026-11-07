@@ -510,7 +510,9 @@
       <section class="card"><h2>1 · Chave de assinatura deste celular</h2>
         <span class="mudo">Copie e cadastre no GitHub como segredo <b>PAINEL_CHAVE</b> (Settings → Secrets and variables → Actions). Ela aparece só agora.</span>
         <div class="chave-box" id="chave">${chave}</div>
-        <div class="botoes"><button class="btn" id="copiar">Copiar chave</button></div></section>
+        <div class="botoes"><button class="btn" id="copiar">Copiar chave</button></div>
+        <div class="campo"><label for="chave-existente">Já cadastrou uma chave antes? Cole aqui (opcional)</label>
+          <input id="chave-existente" type="password" autocomplete="off" spellcheck="false" placeholder="64 letras e números"></div></section>
       <section class="card"><h2>2 · Chave de acesso do GitHub</h2>
         <span class="mudo">Token "fine-grained", só para o repositório holding-agentes: Contents <b>leitura</b>, Issues <b>leitura e escrita</b>, Actions <b>leitura e escrita</b>. Validade de 90 dias.</span>
         <div class="campo"><label for="token">Cole o token</label><input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…"></div>
@@ -522,19 +524,22 @@
     $("#copiar").addEventListener("click", async () => { try { await navigator.clipboard.writeText(chave); toast("Chave copiada."); } catch (e) { const r = document.createRange(); r.selectNodeContents($("#chave")); getSelection().removeAllRanges(); getSelection().addRange(r); toast("Selecionada: copie manualmente."); } });
     $("#testar").addEventListener("click", async () => {
       const token = $("#token").value.trim(), repo = $("#repo").value.trim();
+      const colada = $("#chave-existente").value.trim().toLowerCase();
+      if (colada && !/^[0-9a-f]{64}$/.test(colada)) { $("#erro-cfg").textContent = "A chave colada não tem o formato certo (64 letras e números)."; return; }
+      const chaveFinal = colada || chave;
       const erro = (m) => { $("#erro-cfg").textContent = m; };
       if (!$("#cadastrei").checked) return erro("Cadastre a chave de assinatura no GitHub antes de continuar.");
       if (!/^(github_pat_|ghp_)[A-Za-z0-9_]{20,}$/.test(token)) return erro("Isso não parece um token do GitHub.");
       if (/^ghp_/.test(token)) return erro("Use um token fine-grained (começa com github_pat_), restrito a este repositório.");
       erro("Testando…");
-      S = { token, chave, repo };
+      S = { token, chave: chaveFinal, repo };
       try {
         const r = await gh(`/repos/${repo}`);
         if (!r) { S = null; return erro("Repositório não encontrado com esse token."); }
         if (!r.private) { S = null; return erro("O repositório não é privado. Por segurança, o Painel só funciona com repositório privado."); }
         await gh(`/repos/${repo}/issues?per_page=1`);
       } catch (e) { S = null; return erro(msgErro(e)); }
-      novoPin(async (pin) => { await trancar({ token, chave, repo }, pin); S = { token, chave, repo, pin }; ultimoToque = Date.now(); });
+      novoPin(async (pin) => { await trancar({ token, chave: chaveFinal, repo }, pin); S = { token, chave: chaveFinal, repo, pin }; ultimoToque = Date.now(); });
     });
   }
 
