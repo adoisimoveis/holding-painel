@@ -15,7 +15,11 @@ lidos do repositório privado do sistema, com uma chave que existe apenas no cel
 - Bloqueio automático após 5 minutos parado ou 1 minuto fora do app.
 - Cada operação é uma issue privada com o comando assinado (HMAC-SHA256). O robô aceita só assinatura
   válida, do autor autorizado, em até 30 minutos e sem repetição; o resto é rejeitado com alarme.
-- Operações pedem o PIN de novo.
+- Operações pedem o PIN de novo, ou a digital (passkey com a extensão PRF: a digital gera a chave de um segundo
+  cofre; sem PRF no aparelho, a digital não é oferecida e nada fica guardado aberto).
+- Print do banco: o Android entrega a imagem ao Painel ("Compartilhar"); ela é reduzida, enviada em pedaços
+  assinados pelo hash e apagada do GitHub depois da leitura. A carteira só muda quando o dono confere e aplica.
+- Desfazer: o último registro pode ser desfeito por 10 minutos.
 - Política de segurança de conteúdo: o app só carrega os próprios arquivos e só conversa com api.github.com.
   Sem bibliotecas de terceiros. Todo texto vindo do repositório é escapado.
 
@@ -31,7 +35,7 @@ lidos do repositório privado do sistema, com uma chave que existe apenas no cel
 | Arquivo | Função |
 | --- | --- |
 | `index.html` | Casca e política de segurança |
-| `app.js` | Cofre do PIN, API do GitHub, comandos assinados, telas e gráficos |
+| `app.js` | Cofre do PIN e da digital, API do GitHub, comandos assinados, telas Hoje · Carteira · Análises · Ajustes |
 | `app.css` | Visual (tema claro e escuro) |
-| `sw.js` | Guarda só a casca para abrir rápido; nunca guarda dados |
+| `sw.js` | Guarda só a casca para abrir rápido; recebe o print compartilhado; nunca guarda dados do GitHub |
 | `manifest.webmanifest`, `icone*` | Instalação como app |

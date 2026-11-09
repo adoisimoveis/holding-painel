@@ -1,14 +1,28 @@
 /* Guarda só a casca do app (HTML, CSS, JS, ícones) para abrir rápido.
    Nunca guarda respostas do GitHub: os dados são sempre buscados na hora. */
-const VERSAO = "painel-v2";
+const VERSAO = "painel-v4";
 const CASCA = ["./", "index.html", "app.css", "app.js", "manifest.webmanifest", "icone.svg", "icone-192.png", "icone-512.png"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(VERSAO).then((c) => c.addAll(CASCA))); self.skipWaiting(); });
 self.addEventListener("activate", (e) => {
-  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== VERSAO).map((k) => caches.delete(k)))));
+  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== VERSAO && k !== "painel-print").map((k) => caches.delete(k)))));
   self.clients.claim();
 });
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
+  // print recebido pelo "Compartilhar" do Android: guarda só a imagem, localmente, até o Painel ser destravado
+  if (e.request.method === "POST" && url.origin === location.origin && url.pathname.endsWith("/compartilhar")) {
+    e.respondWith((async () => {
+      try {
+        const dados = await e.request.formData(), arq = dados.get("imagem");
+        if (arq && /^image\//.test(arq.type) && arq.size < 15e6) {
+          const c = await caches.open("painel-print");
+          await c.put("print-compartilhado", new Response(arq, { headers: { "Content-Type": arq.type } }));
+        }
+      } catch (err) { /* ignora */ }
+      return Response.redirect("./?print=1", 303);
+    })());
+    return;
+  }
   if (url.origin !== location.origin || e.request.method !== "GET") return; // GitHub e envios: direto na rede
   e.respondWith(fetch(e.request).then((r) => { const copia = r.clone(); caches.open(VERSAO).then((c) => c.put(e.request, copia)); return r; })
     .catch(() => caches.match(e.request)));
