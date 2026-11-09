@@ -508,6 +508,11 @@
       ${campo("O que é", esc(t.explicacao_simples || "—"))}
       ${campo("Onde", esc(NOME_INST[instDe(t)]))}
       ${campo("Valor", val ? `<b>${brl(val)}</b>${aporte ? ` <span class="mudo">(${esc(Math.round(val / aporte * 100))}% do aporte)</span>` : ""}` : (t.peso_pct ? esc(t.peso_pct) + "% do plano" : "não investir"))}
+      ${campo("Preço hoje", (() => { const av = t.avaliacao || {}; if (!av.veredito) return `<span class="chip mini-chip ruim">sem prova de preço</span>`;
+        const v = String(av.veredito).toLowerCase(), cl = v.startsWith("barat") ? "bom" : v.startsWith("just") ? "meio" : "ruim", mk = MARCA[av.status] || MARCA.sem_fonte;
+        return `<span class="chip mini-chip ${cl}">${esc(String(av.veredito).toUpperCase())}</span> ${esc(av.metrica || "")}: hoje <b>${esc(av.hoje || "?")}</b> · média histórica ${esc(av.media_historica || "?")} <span class="chip mini-chip ${mk[0]}">${esc(mk[1])}</span>${/^https?:\/\//.test(av.fonte_url || "") ? ` <a class="fonte" href="${esc(av.fonte_url)}" target="_blank" rel="noopener noreferrer">fonte</a>` : ""}`; })())}
+      ${campo("Defesa", esc(t.defesa || "a banca não defendeu esta tese"))}
+      ${campo("Entrada", esc(t.preco_entrada || "não informado"))}
       ${campo("Por que", `<span class="mudo">fontes conferidas: ${nConf} de ${args.length}</span><ol class="args">${args.map((x) => { const mk = MARCA[x.status] || MARCA.sem_fonte;
         return `<li>${esc(x.texto)} <span class="chip mini-chip ${mk[0]}">${esc(mk[1])}</span>${/^https?:\/\//.test(x.fonte_url || "") ? ` <a class="fonte" href="${esc(x.fonte_url)}" target="_blank" rel="noopener noreferrer">fonte</a>` : ""}</li>`; }).join("")}</ol>`)}
       ${campo("Risco", esc(t.risco_principal || "não informado pela banca"))}
